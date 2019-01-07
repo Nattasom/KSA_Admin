@@ -98,6 +98,14 @@ class ContentController extends Controller
         
         return response()->json($resp, $this-> successStatus); 
     }
+    public function getContentDetail(Request $request){
+        $lang="th";
+        if(!is_null($request->input("lang"))){
+            $lang = $request->input("lang");
+        }
+        $resp = $this->model->GetContentDetail($lang,$request->input("id"));
+        return response()->json($resp, $this-> successStatus); 
+    }
 }
 
 ?>

@@ -20,6 +20,7 @@ Route::post('producthomedetail', 'API\ContentController@getHomecatDetail');
 Route::post('productlist', 'API\ProductController@productlist');
 Route::post('productdetail', 'API\ProductController@productDetail');
 Route::post('get_content_list', 'API\ContentController@getContentList');
+Route::post('get_content_detail', 'API\ContentController@getContentDetail');
 
 //Master
 Route::post('get_insurer_list', 'API\MasterController@getInsurerList');
