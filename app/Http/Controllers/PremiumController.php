@@ -27,6 +27,11 @@ class PremiumController extends Controller
        
         return response()->json($data);
     }
+    public function premiumProcessingDatatable(Request $request){
+        $data = $this->premiumModel->getPremiumHeadTable($request->input());
+       
+        return response()->json($data);
+    }
     public function import(Request $request){
         $status = "";
         if ($request->session()->exists('save')) {
@@ -38,25 +43,26 @@ class PremiumController extends Controller
         return view("pages.fix-premium-import",$data);
     }
     public function importFile(Request $request){
+        
         $response = array();
         $response["status"] = "00";
         $response["message"] = "";
         $params = $request->input();
         $userInfo = $request->session()->get('userinfo');
         $params["username"] = $userInfo->Username;
-        $resp = $this->premiumModel->importFile($params);
+        $resp = $this->premiumModel->taskImportFile($params);
         if($resp=="01"){
             $response["status"] = $resp;
             $response["message"] = "Import Successful";
-            $request->session()->put('save', $response["status"]);
         }else{
             $response["status"] = $resp;
-            $response["message"] = "Cannot import data";
+            $response["message"] = "not found import data";
         }
 
         return response()->json($response);
     }
     public function uploadFile(Request $request){
+        $userInfo = $request->session()->get('userinfo');
         $response  =  array();
         $response["status"]="";
         $response["read_list"]=array();
@@ -66,8 +72,28 @@ class PremiumController extends Controller
         if(!$this->premiumModel->checkDuplicateFile($originalName)){
             $destinationPath = 'uploads/premium';
             if($request->file('file_upload')->move($destinationPath,$originalName)){
-                $response["status"] ="01";
-                $response["records"] = $this->premiumModel->readPremiumFile($destinationPath."/".$originalName);
+                //add to process
+                $allRecord =  $this->premiumModel->readPremiumFile($destinationPath."/".$originalName);
+                $inputProcess=array(
+                    "FileName"=>$originalName,
+                    "InsurerCode"=>$request->input('insurer'),
+                    "ProcessStatus"=>'P',
+                    "Remark"=>'',
+                    "AllRecords"=>$allRecord,
+                    "SuccessRecords"=>0,
+                    "FailRecords"=>0,
+                    "LastProcessRecords"=>0,
+                    "CreateDate"=>date("Y-m-d H:i:s"),
+                    "CreateBy"=>$userInfo->Username,
+                    "UpdateDate"=>date("Y-m-d H:i:s"),
+                    "UpdateBy"=>$userInfo->Username,
+                );
+                if($this->premiumModel->addImportProcess($inputProcess)){
+                    $response["status"] ="01";
+                    $response["message"] = "Import Successful";
+                }
+                
+                // $response["records"] = $this->premiumModel->readPremiumFile($destinationPath."/".$originalName);
             }else{
                   $response["status"] ="03";
                   $response["message"] = "Cannot upload file";

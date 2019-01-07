@@ -60,9 +60,10 @@ Route::group(['middleware' => 'usersession'], function () {
     Route::any('/dashboard', 'DashboardController@index');
     Route::any('/premium', 'PremiumController@index');
     Route::any('/datatable/premium', 'PremiumController@premiumDatatable');
+    Route::any('/datatable/premium-processing', 'PremiumController@premiumProcessingDatatable');
     Route::any('/premium-import', 'PremiumController@import');
     Route::post('/ajax/premium-upload', 'PremiumController@uploadFile');
-    Route::post('/ajax/premium-import', 'PremiumController@importFile');
+    Route::any('/premium-import-task', 'PremiumController@importFile');
     Route::any('/data/getpremium', 'PremiumController@getDataPremium');
 
     Route::any('/promotion', 'PromotionController@index');

@@ -32,8 +32,14 @@ Drop Lead
                 <div class="row">
                     <div class="col-md-6">
                         @if(in_array('EXPORT',Session::get('userinfo')->permission['page_6']['actions']))
-                            <div class="btn-group">
-                                <a href="{{url('/droplead/export')}}" target="_blank" id="" class="btn btn-success">
+                            <div class="form-inline">
+                                <select name="" id="sl_type_export" class="form-control">
+                                    <option value="">All</option>
+                                    <option value="DEFAULT">Default</option>
+                                    <option value="AYCAL">Aycal</option>
+                                    <option value="ASB">ASB</option>
+                                </select>
+                                <a href="{{url('/droplead/export')}}" id="btn-export-excel" target="_blank" id="" class="btn btn-success">
                                 <i class="fa fa-file-excel-o"></i> Export Excel
                                 </a>
                             </div>
@@ -61,6 +67,41 @@ Drop Lead
                         </div> -->
                     </div>
                 </div>
+            </div>
+            <div class="well">
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label for="" class="control-label">Status</label>
+                            <select name="" id="sl_drop_status" class="form-control">
+                                <option value="">All</option>
+                                <option value="N">Default</option>
+                                <option value="S">Synced</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label for="" class="control-label">Date</label>
+                            <div class="input-group input-large date-picker input-daterange" data-date="10/11/2012" data-date-format="mm/dd/yyyy">
+                                <input type="text" class="form-control" id="txt-search-start" name="from">
+                                <span class="input-group-addon">
+                                to </span>
+                                <input type="text" class="form-control" id="txt-search-end" name="to">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label for="" class="control-label">&nbsp;</label>
+                            <div>
+                                <button type="button" id="btn-search" class="btn btn-primary" >Search</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                
             </div>
             <div class="table-responsive">
                 <table class="table table-bordered" id="tb-droplead">
@@ -142,9 +183,13 @@ Drop Lead
 @stop
 @section('script')
 <link rel="stylesheet" type="text/css" href="{{Config::get('app.root_path')}}/resources/assets/plugins/datatables/plugins/bootstrap/dataTables.bootstrap.css"/>
+<link rel="stylesheet" type="text/css" href="{{Config::get('app.root_path')}}/resources/assets/plugins/bootstrap-datepicker/css/datepicker.css"/>
+<link rel="stylesheet" type="text/css" href="{{Config::get('app.root_path')}}/resources/assets/plugins/bootstrap-daterangepicker/daterangepicker-bs3.css"/>
   <!-- BEGIN PAGE LEVEL PLUGINS -->
 <script type="text/javascript" src="{{Config::get('app.root_path')}}/resources/assets/plugins/datatables/media/js/jquery.dataTables.min.js"></script>
 <script type="text/javascript" src="{{Config::get('app.root_path')}}/resources/assets/plugins/datatables/plugins/bootstrap/dataTables.bootstrap.js"></script>
+<script type="text/javascript" src="{{Config::get('app.root_path')}}/resources/assets/plugins/bootstrap-datepicker/js/bootstrap-datepicker.js"></script>
+<script type="text/javascript" src="{{Config::get('app.root_path')}}/resources/assets/plugins/bootstrap-daterangepicker/daterangepicker.js"></script>
 <script>
     jQuery(document).ready(function() {   
         var ajTable = jQuery("#tb-droplead").dataTable({
@@ -155,6 +200,9 @@ Drop Lead
                 "type": "POST",
                 "data": function ( d ) {
                     d._token = $('meta[name="csrf-token"]').attr('content');
+                    d.start_date  = $("#txt-search-start").val();
+                    d.drop_status = $("#sl_drop_status").val();
+                    d.end_date = $("#txt-search-end").val();
                 }
             },
              "columns": [{
@@ -180,6 +228,21 @@ Drop Lead
                 }],
             "order": [] 
         });
+        $("#btn-search").click(function(){
+            $('#tb-droplead').DataTable().ajax.reload();
+            if($('#btn-export-excel').length>0){
+                $("#btn-export-excel").attr("href","{{url('/droplead/export')}}?export_type="+$("#sl_type_export").val()+"&drop_status="+$("#sl_drop_status").val()+"&start_date="+$("#txt-search-start").val()+"&end_date="+$("#txt-search-end").val());
+            }
+        });
+        $(document).on("change","#sl_type_export",function(){
+            if($('#btn-export-excel').length>0){
+                $("#btn-export-excel").attr("href","{{url('/droplead/export')}}?export_type="+$("#sl_type_export").val()+"&drop_status="+$("#sl_drop_status").val()+"&start_date="+$("#txt-search-start").val()+"&end_date="+$("#txt-search-end").val());
+            }
+        });
+        $('.date-picker').datepicker({
+                rtl: App.isRTL(),
+                autoclose: true
+            });
         $("#dropdetail").on("shown.bs.modal",function(){
             var params = {};
             params.idx = $("#hd-idx-droplead").val();

@@ -168,21 +168,6 @@ Premium
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr>
-                                    <td>02/12/2018 00:00</td>
-                                    <td>Test.csv</td>
-                                    <td>MSIG</td>
-                                    <td>10000</td>
-                                    <td>100</td>
-                                    <td><a href="#"><span class="text-danger">2</span></a></td>
-                                    <td>
-                                        <span class="text-warning">กำลังนำเข้า (1000/10000)</span>
-                                        <!-- <span class="text-success">นำเข้าเรียบร้อย</span> -->
-                                    </td>
-                                    <td>
-                                        <button type="button" class="btn btn-success">อนุมัติ</button>
-                                    </td>
-                                </tr>
                             </tbody>
                         </table>
                     </div>
@@ -290,13 +275,46 @@ Premium
 <link rel="stylesheet" type="text/css" href="resources/assets/plugins/bootstrap-datepicker/css/datepicker.css"/>
 <link rel="stylesheet" type="text/css" href="resources/assets/plugins/bootstrap-daterangepicker/daterangepicker-bs3.css"/>
 <link rel="stylesheet" type="text/css" href="resources/assets/plugins/bootstrap-fileinput/bootstrap-fileinput.css"/>
+<link rel="stylesheet" type="text/css" href="resources/assets/plugins/datatables/plugins/bootstrap/dataTables.bootstrap.css"/>
   <!-- BEGIN PAGE LEVEL PLUGINS -->
 <script type="text/javascript" src="resources/assets/plugins/select2/select2.min.js"></script>
 <script type="text/javascript" src="resources/assets/plugins/bootstrap-fileinput/bootstrap-fileinput.js"></script>
 <script type="text/javascript" src="resources/assets/plugins/bootstrap-datepicker/js/bootstrap-datepicker.js"></script>
+<script type="text/javascript" src="resources/assets/plugins/datatables/media/js/jquery.dataTables.min.js"></script>
+<script type="text/javascript" src="resources/assets/plugins/datatables/plugins/bootstrap/dataTables.bootstrap.js"></script>
 <!-- END PAGE LEVEL PLUGINS -->
 <script>
     jQuery(document).ready(function() {
+        jQuery("#tb-fix-premium-process").dataTable({
+            "processing": true,
+            "serverSide": true,
+            "ajax": {
+                "url": "{{url('/datatable/premium-processing')}}",
+                "type": "POST",
+                "data": function ( d ) {
+                    d._token = $('meta[name="csrf-token"]').attr('content');
+                }
+            },
+             "columns": [{
+                    "orderable": false
+                }, {
+                    "orderable": false
+                }, {
+                    "orderable": false
+                }, {
+                    "orderable": false
+                }, {
+                    "orderable": false
+                },{
+                    "orderable": false
+                }, {
+                    "orderable": false
+                }, {
+                    "orderable": false
+                }],
+            "order": [],
+            "searching": false
+        });
         $('.date-picker').datepicker({
             rtl: App.isRTL(),
             autoclose: true

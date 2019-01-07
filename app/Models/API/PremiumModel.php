@@ -35,6 +35,10 @@ class PremiumModel
         }
         $email = array_key_exists("email",$params) ? $params["email"]:'';
         $remark = array_key_exists("remark",$params) ? $params["remark"]:'';
+        $drop_type = "DEFAULT";
+        if(array_key_exists("drop_type",$params)){
+            $drop_type = $params["drop_type"];
+        }
         $insertData = array(
             "TFirstName"=>$fname,
             "TLastName"=>$lname,
@@ -48,7 +52,9 @@ class PremiumModel
             "Seat"=>$params["seat"],
             "CC"=>$params["cc"],
             "DropDate"=>date("Y-m-d H:i:s"),
-            "Status"=>'N'
+            "Status"=>'N',
+            "DropType"=>$drop_type,
+            "ExportCount"=>0
         );
         $ins = DB::table("tts_droplead")->insertGetId($insertData);
         if($ins > 0){

@@ -3,14 +3,22 @@
 namespace App\Models;
 
 use Illuminate\Support\Facades\DB;
+use App\Models\CoreModel;
 
 class DropleadModel 
 {
+    private $core;
+    public function __construct(){
+        $this->core = new CoreModel();
+    }
    public function getDropleadTable($resp = array()){
     $where = array();
        $data = array();
         $rowsTotal = 10;
         $searchText = $resp["search"]["value"];
+        $startDate = $resp["start_date"];
+        $endDate = $resp["end_date"];
+        $dropStat = $resp["drop_status"];
         $sqlCount = "SELECT Count(*) as cc FROM tts_droplead a  WHERE 1=1 ";
         $sql = "SELECT * FROM tts_droplead a   WHERE 1=1";
         if(!empty($searchText)){
@@ -19,6 +27,23 @@ class DropleadModel
             $where["search"] = "%".$searchText."%";
             $where["search1"] = "%".$searchText."%";
             $where["search2"] = "%".$searchText."%";
+        }
+        if(!empty($dropStat)){
+            $sql .=" AND a.Status = :drop_stat";
+            $sqlCount .=" AND a.Status = :drop_stat";
+            $where["drop_stat"] = $dropStat;
+        }
+        if(!empty($startDate)){
+            $stDate = $this->core->ConvertToSystemDate($startDate);
+            $sql .=" AND a.DropDate >= :startdate";
+            $sqlCount .=" AND a.DropDate >= :startdate";
+            $where["startdate"] = $stDate;
+        }
+        if(!empty($endDate)){
+            $nDate = $this->core->ConvertToSystemDate($endDate);
+            $sql .=" AND a.DropDate <= :enddate";
+            $sqlCount .=" AND a.DropDate <= :enddate";
+            $where["enddate"] = $nDate;
         }
         $sql .=" Order by a.DropDate desc";
         $sql .=" LIMIT ".$resp["start"].",".$resp["length"];
@@ -31,11 +56,11 @@ class DropleadModel
         foreach($list as $item){
             
             if($item->Status == "S"){
-                $statusText = '<span class="label label-success">Synced</span>';
+                $statusText = '<strong class="text-success">Synced</strong>';
                 //$btnActive = '<a  href ="javascript:setActive(\'I\',\''.$code.'\');"  class="btn btn-danger btn-xs" >Inactive</a>';
 
             }else{
-                $statusText = '<span class="label label-danger">No-Synced</span>';
+                $statusText = '<strong class="text-danger">Default</strong>';
                 //$btnActive = '<a  href ="javascript:setActive(\'A\',\''.$code.'\');"  class="btn btn-success btn-xs" >Active</a>';
             }
             $name = $item->TtitleName." ".$item->TFirstName." ".$item->TLastName;
