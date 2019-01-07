@@ -26,6 +26,7 @@ Route::post('get_content_detail', 'API\ContentController@getContentDetail');
 Route::post('get_insurer_list', 'API\MasterController@getInsurerList');
 Route::post('get_make_value_list', 'API\MasterController@getMakeValueList');
 Route::post('get_model_value_list', 'API\MasterController@getModelValueList');
+Route::post('get_sub_model_value_list', 'API\MasterController@getSubModelValueList');
 Route::post('get_model_year_list', 'API\MasterController@getModelYearList');
 Route::post('get_claim_type', 'API\MasterController@getClaimType');
 Route::post('get_sperate_pay_list ', 'API\MasterController@getSperatePayList');

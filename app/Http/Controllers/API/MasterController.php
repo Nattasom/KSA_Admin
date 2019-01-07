@@ -37,6 +37,16 @@ class MasterController extends Controller
         
         return response()->json($resp, $this-> successStatus); 
     }
+    public function getSubModelValueList(Request $request){
+        //check val 
+        if(is_null($request->input("model_value"))){
+            return response()->json(["fail"=>"make_value not found"], $this-> successStatus); 
+        }
+        $resp = array();
+        $resp = $this->model->GetSubModelValue($request->input("model_value"),$request->input("year"));
+        
+        return response()->json($resp, $this-> successStatus); 
+    }
     public function getModelYearList(Request $request){
         //check val 
         if(is_null($request->input("model_value"))){

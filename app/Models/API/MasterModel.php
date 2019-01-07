@@ -30,15 +30,26 @@ class MasterModel
        return $list;
    }
    public function GetModelValue($makevalue){
-        $sql = "SELECT MakeValue,ModelValue,CC FROM mst_carmodel WHERE MakeValue = ? ";
+        $sql = "SELECT Distinct ModelValue FROM mst_fix_premium WHERE MakeValue = ? ";
         $list = DB::select($sql,[$makevalue]);
+
+        return $list;
+   }
+   public function GetSubModelValue($modelvalue,$year){
+        $this_year = date("Y");
+        $diffYear = intval($year)-intval($this_year);
+        $sql = "SELECT Distinct ModelDescription FROM mst_fix_premium WHERE ModelValue = ? AND AgeCarMax >= ?";
+        $list = DB::select($sql,[$modelvalue,$diffYear]);
 
         return $list;
    }
    public function GetModelYear($modelvalue){
         $list = array();
+        $sql = "SELECT Max(AgeCarMax) as agemax FROM mst_fix_premium WHERE ModelValue = ? ";
+        $qAge = collect(\DB::select($sql,[$modelvalue]))->first();
+
         $this_year = date("Y");
-        for($i = $this_year;$i >= ($this_year-20);$i--){
+        for($i = $this_year;$i >= ($this_year-$qAge->agemax);$i--){
             $list[] = $i;
         }
         return $list;

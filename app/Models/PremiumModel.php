@@ -276,7 +276,7 @@ class PremiumModel
                                 'NetPremium' => is_numeric(str_replace(',','',$csvLine[28])) ? str_replace(',','',$csvLine[28]) : 0,
                                 'Stamp' => is_numeric(str_replace(',','',$csvLine[29])) ? str_replace(',','',$csvLine[29]) : 0,
                                 'VAT' => is_numeric(str_replace(',','',$csvLine[30])) ? str_replace(',','',$csvLine[30]) : 0,
-                                'NetPremium' => is_numeric(str_replace(',','',$csvLine[31])) ? str_replace(',','',$csvLine[31]) : 0,
+                                'TotalPremium' => is_numeric(str_replace(',','',$csvLine[31])) ? str_replace(',','',$csvLine[31]) : 0,
                                 'DeductAmt' => is_numeric(str_replace(',','',$csvLine[32])) ? str_replace(',','',$csvLine[32]) : 0,
                                 'FIRE_THEFT' => is_numeric(str_replace(',','',$csvLine[33])) ? str_replace(',','',$csvLine[33]) : 0,
                                 'TPPI_P' => is_numeric(str_replace(',','',$csvLine[34])) ? str_replace(',','',$csvLine[34]) : 0,
