@@ -104,6 +104,14 @@ Route::group(['middleware' => 'usersession'], function () {
     Route::any('/action/banner-slider-status', 'ContentController@actionBannerSliderStatus');
     Route::any('/banner-slider/edit/{id}', 'ContentController@bannerSliderEdit');
 
+    Route::any('/content', 'ContentController@content');
+    Route::any('/content/add', 'ContentController@contentAdd');
+    Route::any('/action/content-add', 'ContentController@actionContentAdd');
+    Route::any('/content/edit/{id}', 'ContentController@contentEdit');
+    Route::any('/action/content-edit', 'ContentController@actionContentEdit');
+    Route::any('/datatable/content', 'ContentController@contentDatatable');
+    Route::any('/action/content-status', 'ContentController@actionContentStatus');
+
     Route::any('/product', 'ProductController@index');
     Route::any('/product-add', 'ProductController@add');
     Route::any('/product-edit/{id}', 'ProductController@edit');

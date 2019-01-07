@@ -142,4 +142,46 @@ class ContentModel
 
         return $data;
    }
+   public function GetContentDetail($lang='th',$id){
+        $sql = "SELECT a.*,b.Title,b.Thumbnail,b.Description
+                FROM mst_content a 
+                    inner join mst_content_detail b on b.LanguageCode= ? AND a.ContentID=b.ContentID
+
+                WHERE a.ContentID=?";
+        $data = collect(\DB::select($sql,[$lang,$id]))->first();
+
+        return $data;
+   }
+   public function GetContentList($lang='th',$start=0,$length=4){
+        $sql = "SELECT a.*,b.Title,b.Thumbnail,b.Description
+                FROM mst_content a 
+                    inner join mst_content_detail b on b.LanguageCode= ? AND a.ContentID=b.ContentID
+
+                WHERE a.Status='A'
+                Order By a.UpdateDate desc
+                LIMIT ".$start.",".$length;
+         $sqlCount = "SELECT Count(*) as cc
+                FROM mst_content a 
+                WHERE a.Status='A'";
+        $resp = array();
+        $list = DB::select($sql,[$lang]);
+        $qCount = collect(\DB::select($sqlCount))->first();
+        $pathContent = "uploads/content/";
+        foreach($list as $key=>$value){
+            $tmp = $value;
+            if(!empty($tmp->Thumbnail)){
+                $thumb = $pathContent.$tmp->Thumbnail;
+                // $typeThumb = pathinfo($thumb, PATHINFO_EXTENSION);
+                // $dataThumb = file_get_contents($thumb);
+                // $base64Thumb = 'data:image/' . $typeThumb . ';base64,' . base64_encode($dataThumb);
+                $tmp->Thumbnail = $this->full_url.$thumb;
+            }
+            $resp[] = $tmp;
+        }
+        $data["start"] = $start;
+        $data["length"] = $length;
+        $data["num_rows"] = $qCount->cc;
+        $data["list"] = $resp;
+        return $data;
+   }
 }

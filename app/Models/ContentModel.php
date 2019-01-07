@@ -130,6 +130,61 @@ class ContentModel
         
         return $data;
    }
+   public function getContentTable($resp = array()){
+       $where = array();
+       $data = array();
+        $rowsTotal = 10;
+        $searchText = $resp["search"]["value"];
+        $sqlCount = "SELECT Count(*) as cc FROM mst_content a inner join mst_content_detail b on a.ContentID=b.ContentID AND b.LanguageCode = 'th'  WHERE 1=1 ";
+        $sql = "SELECT * FROM mst_content a inner join mst_content_detail b on a.ContentID=b.ContentID AND b.LanguageCode = 'th' WHERE 1=1";
+        if(!empty($searchText)){
+            $sql .=" AND (b.Title LIKE :search)";
+            $sqlCount .=" AND (b.Title LIKE :search)";
+            $where["search"] = "%".$searchText."%";
+        }
+        $sql .=" LIMIT ".$resp["start"].",".$resp["length"];
+        $sCount = collect(\DB::select($sqlCount,$where))->first();
+        $rowsTotal = $sCount->cc;
+        $list = DB::select($sql,$where);
+        $row = $resp["start"]+1;
+        $data["data"] = array();
+        foreach($list as $item){
+            $image = "";
+            $btnActive = "";
+            $statusText = "";
+            if(!empty($item->Thumbnail)){
+                $image = config("app.root_path")."/uploads/content/".$item->Thumbnail;
+                $image = '<img width="120" src="'.$image.'" />';
+            }
+            $code = $item->ContentID;
+            $name =$item->Title;
+            if($item->Status == "A"){
+                $statusText = '<span class="label label-success">Active</span>';
+                $btnActive = '<a  href ="javascript:setActive(\'I\',\''.$code.'\');"  class="btn btn-danger btn-xs" >Inactive</a>';
+
+            }else{
+                $statusText = '<span class="label label-danger">Inactive</span>';
+                $btnActive = '<a  href ="javascript:setActive(\'A\',\''.$code.'\');"  class="btn btn-success btn-xs" >Active</a>';
+            }
+            $editGroup = '';
+            if(in_array('EDIT',Session::get('userinfo')->permission['page_2']['actions']))
+            {
+                $editGroup = '<a  href ="'.url("/content/edit",[$code]).'" class="btn btn-primary btn-xs btn-edit" >Edit</a>  '.$btnActive;
+            }
+            $data["data"][] = array(
+                $image,
+                $name,
+                $statusText,
+                $editGroup,
+            );
+            $row++;
+        }
+        $data["draw"] = $resp["draw"];
+        $data["recordsTotal"] = $rowsTotal;
+        $data["recordsFiltered"] = $rowsTotal;
+        
+        return $data;
+   }
    public function getHomeCatProductListTable($resp = array()){
         $where = array();
        $data = array();
@@ -375,6 +430,14 @@ class ContentModel
         }
         return $resp;
    }
+   public function ContentSetStatus($params = array()){
+        $resp = false;
+        $row = DB::update("UPDATE mst_content SET Status = ? WHERE ContentID = ?",[$params["status"],$params["code"]]);
+        if($row > 0){
+            $resp = true;
+        }
+        return $resp;
+   }
    public function GetSliderBanner($id){
     $data = array();
     $sql = "SELECT a.*,b.BannerName,b.BannerImage,b.BannerImageMobile,b.LanguageCode FROM mst_banner_slider a inner join mst_banner_slider_detail b on a.BannerID=b.BannerID  WHERE a.BannerID = ?";
@@ -392,6 +455,61 @@ class ContentModel
         );
     }
     return $data;
+   }
+   public function GetContentDetail($id){
+    $data = array();
+    $sql = "SELECT a.*,b.Title,b.Description,b.Thumbnail,b.LanguageCode FROM mst_content a inner join mst_content_detail b on a.ContentID=b.ContentID  WHERE a.ContentID = ?";
+    $list = DB::select($sql,[$id]);
+    foreach($list as $key=>$value){
+        if($key==0){
+            $data["id"] = $value->ContentID;
+            $data["content_status"] = $value->Status;
+        }
+        $data["detail"][$value->LanguageCode] = array(
+            "title"=>$value->Title,
+            "thumbnail"=>$value->Thumbnail,
+            "desc"=>$value->Description,
+        );
+    }
+    return $data;
+   }
+   public function ContentAdd($params = array(),$files){
+        $resp = "00";
+       do{
+        $insData = array(
+            "Status"=>$params["content_status"],
+            "CreateBy"=>$params["username"],
+            "CreateDate"=>date("Y-m-d H:i:s"),
+            "UpdateBy"=>$params["username"],
+            "UpdateDate"=>date("Y-m-d H:i:s"),
+        );
+        $id = DB::table("mst_content")->insertGetId($insData);
+        if($id > 0){
+            $langs = $this->core->GetLangList();
+            foreach($langs as $key=>$value){
+                $insDetail = array(
+                    "ContentID"=>$id,
+                    "LanguageCode"=>$value->LanguageCode,
+                    "Title"=>$params["content_title_".$value->LanguageCode],
+                    "Description"=>$params["editor_".$value->LanguageCode]
+                );
+                $detailID = DB::table("mst_content_detail")->insertGetId($insDetail);
+                if($detailID > 0){
+                    if(array_key_exists("thumbnail_".$value->LanguageCode,$files)){
+                        $originalName =  time().$files["thumbnail_".$value->LanguageCode]->getClientOriginalName();
+                        $destinationPath = 'uploads/content';
+                        if($files["thumbnail_".$value->LanguageCode]->move($destinationPath,$originalName)){
+                            DB::update("UPDATE mst_content_detail SET Thumbnail = ? WHERE ContentDetailID = ? AND LanguageCode = ?",[$originalName,$detailID,$value->LanguageCode]);
+                        }
+                    }
+                }
+            }//foreach lang
+        }//header insert
+
+        $resp = "01";
+       }while(false);
+       
+       return $resp;
    }
    public function BannerSliderAdd($params = array(),$files){
         $resp = "00";
@@ -428,6 +546,43 @@ class ContentModel
                         if($files["banner_mb_".$value->LanguageCode]->move($destinationPath,$originalName)){
                             DB::update("UPDATE mst_banner_slider_detail SET BannerImageMobile = ? WHERE BannerDetailID = ? AND LanguageCode = ?",[$originalName,$detailID,$value->LanguageCode]);
                         }
+                    }
+                }
+            }//foreach lang
+        }//header insert
+
+        $resp = "01";
+       }while(false);
+       
+       return $resp;
+   }
+   public function ContentEdit($params = array(),$files){
+        $resp = "00";
+       do{
+        $insData = array(
+            "Status"=>$params["content_status"],
+            "UpdateBy"=>$params["username"],
+            "UpdateDate"=>date("Y-m-d H:i:s"),
+        );
+        $row = DB::table("mst_content")
+        ->where('ContentID',$params["content_id"])
+        ->update($insData);
+        if($row > 0){
+            $langs = $this->core->GetLangList();
+            foreach($langs as $key=>$value){
+                $insDetail = array(
+                    "Title"=>$params["content_title_".$value->LanguageCode],
+                    "Description"=>$params["editor_".$value->LanguageCode]
+                );
+                $rowDetail = DB::table("mst_content_detail")
+                ->where('ContentID',$params["content_id"])
+                ->where('LanguageCode',$value->LanguageCode)
+                ->update($insDetail);
+                if(array_key_exists("thumbnail_".$value->LanguageCode,$files)){
+                    $originalName =  time().$files["thumbnail_".$value->LanguageCode]->getClientOriginalName();
+                    $destinationPath = 'uploads/content';
+                    if($files["thumbnail_".$value->LanguageCode]->move($destinationPath,$originalName)){
+                        DB::update("UPDATE mst_content_detail SET Thumbnail = ? WHERE ContentID = ? AND LanguageCode = ?",[$originalName,$params["content_id"],$value->LanguageCode]);
                     }
                 }
             }//foreach lang

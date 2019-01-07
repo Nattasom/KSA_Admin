@@ -22,6 +22,69 @@ class ContentController extends Controller
         $this->master = new MasterDataModel();
         $this->promotion = new PromotionModel();
     }
+    public function content(){
+        $data["lang"] = $this->core->GetLangList();
+        return view("pages.content",$data);
+    }
+    public function contentDatatable(Request $request){
+        $data = $this->model->getContentTable($request->input());
+       
+        return response()->json($data);
+    }
+    public function actionContentStatus(Request $request){
+        $data["status"] = "00";
+        $data["message"] = "";
+        $resp = $this->model->ContentSetStatus($request->input());
+        if($resp){
+            $data["status"] = "01";
+        }
+        return response()->json($data);
+    }
+    public function ContentAdd(){
+        $data["lang"] = $this->core->GetLangList();
+        return view("pages.content-add",$data);
+    }
+    public function actionContentAdd(Request $request){
+        $data["status"] = "00";
+        $data["message"] = "";
+        $params = $request->input();
+        $userInfo = $request->session()->get('userinfo');
+        $params["username"] = $userInfo->Username;
+        $resp = $this->model->ContentAdd($params,$request->file());
+        if($resp=="01"){
+            $data["status"] = $resp;
+            $data["message"] = "Save data successful";
+            $request->session()->put('save', $data["status"]);
+        }else{
+            $data["status"] = $resp;
+            $data["message"] = "Can not save data";
+            // if($resp=="03"){
+            //     $data["message"] = "Insurer code is duplicate";
+            // }
+        }
+        return response()->json($data);
+    }
+    public function ContentEdit($id){
+        $data["lang"] = $this->core->GetLangList();
+        $data["resp"] = $this->model->GetContentDetail($id);
+        return view("pages.content-edit",$data);
+    }
+    public function actionContentEdit(Request $request){
+        $data["status"] = "00";
+        $data["message"] = "";
+        $params = $request->input();
+        $userInfo = $request->session()->get('userinfo');
+        $params["username"] = $userInfo->Username;
+        $resp = $this->model->ContentEdit($params,$request->file());
+        if($resp=="01"){
+            $data["status"] = $resp;
+            $data["message"] = "Save data successful";
+        }else{
+            $data["status"] = $resp;
+            $data["message"] = "Can not save data";
+        }
+        return response()->json($data);
+    }
     public function banner(){
         $data["lang"] = $this->core->GetLangList();
         $data["resp"] = $this->model->GetSuggestBanner();

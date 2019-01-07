@@ -81,6 +81,23 @@ class ContentController extends Controller
         
         return response()->json($resp, $this-> successStatus); 
     }
+    public function getContentList(Request $request){
+        $lang="th";
+        $start = 0;
+        $length = 4;
+        if(!is_null($request->input("lang"))){
+            $lang = $request->input("lang");
+        }
+        if(!is_null($request->input("start"))){
+            $start = $request->input("start");
+        }
+        if(!is_null($request->input("length"))){
+            $length = $request->input("length");
+        }
+        $resp = $this->model->GetContentList($lang,$start,$length);
+        
+        return response()->json($resp, $this-> successStatus); 
+    }
 }
 
 ?>
